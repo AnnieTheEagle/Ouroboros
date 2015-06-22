@@ -31,11 +31,12 @@ namespace Ouroboros {
 
         private void InitializeSetBrowser() { // Initializes the Set Browser by adding the columns
             // Total Width of Control: 1048 (-4 to ensure no horizontal scrollbar) (-17 for vertical scrollbar) = 1027 usable pixels
-            setBrowser.Columns.Add("Set Name", 427, HorizontalAlignment.Center);
+            setBrowser.Columns.Add("Set Name", 402, HorizontalAlignment.Center);
             setBrowser.Columns.Add("Key", 50, HorizontalAlignment.Center);
             setBrowser.Columns.Add("Card Code", 150, HorizontalAlignment.Center);
-            setBrowser.Columns.Add("Card Rarity", 200, HorizontalAlignment.Center);
-            setBrowser.Columns.Add("Set Language", 200, HorizontalAlignment.Center);
+            setBrowser.Columns.Add("Card Rarity", 175, HorizontalAlignment.Center);
+            setBrowser.Columns.Add("Set Language", 175, HorizontalAlignment.Center);
+            setBrowser.Columns.Add("Price", 75, HorizontalAlignment.Center);
         }
 
         private void CardBrowser_Load(object sender, EventArgs e) {
@@ -112,6 +113,7 @@ namespace Ouroboros {
                 item.SubItems.Add(cardForDetails.listOfSets[i].cardSetID); // Full Card ID
                 item.SubItems.Add(cardForDetails.listOfSets[i].cardSetRarity); // Card Rarity
                 item.SubItems.Add(cardForDetails.listOfSets[i].cardSetLanguage); // Set Language
+                item.SubItems.Add("?"); // Card Price
 
                 listViewCards.Add(item);
             }
@@ -351,11 +353,48 @@ namespace Ouroboros {
         # endregion
 
         # region UI Events
+        private void getPricesButton_Click(object sender, EventArgs e) {
+            // Lock the get card prices button until we're done.
+            getPricesButton.Text = "Retrieving...";
+            getPricesButton.Enabled = false;
+
+            // Fetch the card prices asynchronously!
+            GetPrices i = new GetPrices(getCardPrices);
+            IAsyncResult result1 = i.BeginInvoke(cardList.SelectedIndex, null, null);
+        }
+
+        delegate void GetPrices(int selectedIndex);
+
+        private void getCardPrices(int selectedIndex) {
+            KeyValuePair<string, Card> selectedKVPair = (KeyValuePair<string, Card>)cardList.Items[selectedIndex];
+            List<CardPrice> prices = Utilities.getCardPrices(selectedKVPair.Value.cardName); // Retreive a list of card prices from troll and toad.
+            
+            this.Invoke(new Action(() => { // Return to main thread to proceed with updating UI elements.
+                if (cardList.SelectedIndex == selectedIndex) { // We check if the current selected list element is the same as when the button was pressed.
+                    // We need to check on a binary (i, j) matching.
+                    for (int i = 0; i < prices.Count; i++) {
+                        for (int j = 0; j < this.setBrowser.Items.Count; j++) {
+                            // Long ass conditional statement inbound... We use the second conditional statement to check if the same card exists (some NA/EN sets are catalogued without "EN" in the card code, but we only check if the first check failed).
+                            if ((this.setBrowser.Items[j].SubItems[2].Text == prices[i].cardCode && this.setBrowser.Items[j].SubItems[3].Text == prices[i].cardRarity) || (this.setBrowser.Items[j].SubItems[2].Text.Replace("EN", "") == prices[i].cardCode && this.setBrowser.Items[j].SubItems[3].Text == prices[i].cardRarity)) {
+                                // If card-code and rarity are identical, then we can set the price.
+                                this.setBrowser.Items[j].SubItems[5].Text = "$" + prices[i].getBestConditionPrice().ToString("n2");
+                            }
+                        }
+                    }
+                }
+                // Return the button to the normal state.
+                getPricesButton.Text = "Get Prices!";
+                getPricesButton.Enabled = true;
+            }));
+        }
+
         private void CardBrowser_FormClosing(object sender, FormClosingEventArgs e) { 
             // Save database on form closing...
             Utilities.saveDB(DataStorage.database);
             Console.WriteLine("[DB Manager] Database was saved successfully before program closure!");
         }
         # endregion
+
+
     }
 }

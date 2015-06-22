@@ -60,6 +60,7 @@
     <Compile Include="CardListBox.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="CardPrice.cs" />
     <Compile Include="CollectorReport.cs">
       <SubType>Form</SubType>
     </Compile>

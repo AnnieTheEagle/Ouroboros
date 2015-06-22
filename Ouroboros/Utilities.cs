@@ -386,6 +386,73 @@ namespace Ouroboros {
         }
         # endregion
 
+        # region Public Troll-and-Toad Methods
+        public static List<CardPrice> getCardPrices(string cardName) {
+            List<CardPrice> results = new List<CardPrice>();
+            // Retrieve the listing from Troll-and-Toad.
+            string pageCode = getPageCode("http://www.trollandtoad.com/products/search.php?search_words=" + cardName.Replace(" ", "+") + "&search_category=4736&search_order=relevance_desc");
+
+            int cursorIDX = 0; // Cursor for adding the results.
+            List<string> cardResults = new List<string>();
+            while (true) { // Until we can't find anymore.
+                int startIDX = pageCode.IndexOf("<div class=\"search_result_wrapper\">", cursorIDX);
+                if (startIDX == -1) { break; }
+                int endIDX = pageCode.IndexOf("</table></div></div>", startIDX);
+                
+                // Extract the single result from between the div class and end-of-table tags.
+                string singleResult = pageCode.Substring(startIDX, endIDX - startIDX);
+                if (singleResult.Contains("Yugioh Card")) { cardResults.Add(pageCode.Substring(startIDX, endIDX - startIDX)); } // Only add this result if it is for a card, and not a box/set/deck.
+                cursorIDX = endIDX; // Update the cursor.
+            }
+
+            // Process the results.
+            for (int i = 0; i < cardResults.Count(); i++) { // For each result...
+                string resultCode = cardResults[i];
+
+                int codeRarityStart = resultCode.IndexOf("> - ") + "> - ".Length;
+                int codeRarityEnd = resultCode.IndexOf("\"", codeRarityStart);
+                string codeAndRarity = resultCode.Substring(codeRarityStart, codeRarityEnd - codeRarityStart);
+
+                // Extract the card's code and rarity.
+                string[] crParts = codeAndRarity.Split(new string[] { " - " }, StringSplitOptions.None);
+                string cardCode = crParts[0];
+                string rarity = "null";
+
+                if (crParts.Length == 1) { // If the rarity is BEFORE the card name, crParts will only have 1 part.
+                    // Extract the rarity in the alt-text of the image.
+                    rarity = resultCode.Substring(resultCode.IndexOf("alt=\"") + "alt=\"".Length, resultCode.IndexOf(" - ", resultCode.IndexOf("alt=\"")) - (resultCode.IndexOf("alt=\"") + "alt=\"".Length));
+                }
+                else { // Otherwise extract it from crParts[1], removing any 1st edition and unlimited nonsense.
+                    rarity = crParts[1].Replace(" 1st Edition", "").Replace(" Unlimited", "");
+                }
+
+                Dictionary<string, double> conditionPrices = new Dictionary<string, double>(); // Dictionary mapping condition text to price.
+
+                int resultCursorIDX = 0;
+                while (true) { // Until we can no longer find any conditions.
+                    int startIDX = resultCode.IndexOf("return false;\">", resultCursorIDX) + "return false;\">".Length;
+                    if (startIDX - "return false;\">".Length == -1) { break; }
+                    int endIDX = resultCode.IndexOf("</a>", startIDX);
+
+                    // Extract the condition name between the a-href tags.
+                    string condition = resultCode.Substring(startIDX, endIDX - startIDX);
+
+                    startIDX = resultCode.IndexOf("\"price_text\">", endIDX) + "\"price_text\">".Length;
+                    endIDX = resultCode.IndexOf("</td>", startIDX);
+
+                    // Extract the price between the price_text tags.
+                    double price = Double.Parse(resultCode.Substring(startIDX, endIDX - startIDX).Replace("$", ""));
+
+                    if (!conditionPrices.ContainsKey(condition)) { conditionPrices.Add(condition, price); } // If we don't already have this condition, add it.
+                    resultCursorIDX = endIDX + 1; // Update the cursor.
+                }
+
+                results.Add(new CardPrice(cardName.Trim(), cardCode.Trim(), rarity.Trim(), conditionPrices)); // Add this result in the form of a CardPrice object.
+            }
+            return results;
+        }
+        # endregion
+
         # region Public Database IO Methods
 
         public static int importOwnedCards(CardDB oldDB, CardDB newDB) {

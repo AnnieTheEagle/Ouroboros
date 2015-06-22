@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CardBrowser));
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addCardSetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveDatabaseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -71,7 +72,7 @@
             this.textLabel_p = new System.Windows.Forms.Label();
             this.cardText_p = new System.Windows.Forms.TextBox();
             this.cardList = new Ouroboros.CardListBox();
-            this.addCardSetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.getPricesButton = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.cardTypingBox.SuspendLayout();
             this.monsterDetailsBox.SuspendLayout();
@@ -101,6 +102,13 @@
             this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
             this.settingsToolStripMenuItem.Size = new System.Drawing.Size(76, 20);
             this.settingsToolStripMenuItem.Text = "Ouroboros";
+            // 
+            // addCardSetToolStripMenuItem
+            // 
+            this.addCardSetToolStripMenuItem.Name = "addCardSetToolStripMenuItem";
+            this.addCardSetToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.addCardSetToolStripMenuItem.Text = "Add Card Set";
+            this.addCardSetToolStripMenuItem.Click += new System.EventHandler(this.addCardSetToolStripMenuItem_Click);
             // 
             // saveDatabaseToolStripMenuItem
             // 
@@ -544,18 +552,22 @@
             this.cardList.SelectedIndexChanged += new System.EventHandler(this.cardList_SelectedIndexChanged);
             this.cardList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.cardList_KeyDown);
             // 
-            // addCardSetToolStripMenuItem
+            // getPricesButton
             // 
-            this.addCardSetToolStripMenuItem.Name = "addCardSetToolStripMenuItem";
-            this.addCardSetToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
-            this.addCardSetToolStripMenuItem.Text = "Add Card Set";
-            this.addCardSetToolStripMenuItem.Click += new System.EventHandler(this.addCardSetToolStripMenuItem_Click);
+            this.getPricesButton.Location = new System.Drawing.Point(1394, 712);
+            this.getPricesButton.Name = "getPricesButton";
+            this.getPricesButton.Size = new System.Drawing.Size(75, 23);
+            this.getPricesButton.TabIndex = 18;
+            this.getPricesButton.Text = "Get Prices!";
+            this.getPricesButton.UseVisualStyleBackColor = true;
+            this.getPricesButton.Click += new System.EventHandler(this.getPricesButton_Click);
             // 
             // CardBrowser
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1481, 1038);
+            this.Controls.Add(this.getPricesButton);
             this.Controls.Add(this.pendulumTextGroup);
             this.Controls.Add(this.setsLabel);
             this.Controls.Add(this.collectionBox);
@@ -635,5 +647,6 @@
         private System.Windows.Forms.Label textLabel_p;
         private System.Windows.Forms.TextBox cardText_p;
         private System.Windows.Forms.ToolStripMenuItem addCardSetToolStripMenuItem;
+        private System.Windows.Forms.Button getPricesButton;
     }
 }
