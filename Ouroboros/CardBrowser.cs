@@ -15,6 +15,7 @@ namespace Ouroboros {
     public partial class CardBrowser : Form {
         # region Fields
         SortedDictionary<string, Card> cardNames = new SortedDictionary<string, Card>(); // List of unique card names.
+        SortedDictionary<string, List<CardPrice>> cardPriceCache = new SortedDictionary<string, List<CardPrice>>(); // A temporary cache for card prices.
         bool userControlled = false; // Whether the checking of Set Browser items is user controlled or not.
         int currentCardIDX = -999; // Current card index selected.
 
@@ -31,12 +32,12 @@ namespace Ouroboros {
 
         private void InitializeSetBrowser() { // Initializes the Set Browser by adding the columns
             // Total Width of Control: 1048 (-4 to ensure no horizontal scrollbar) (-17 for vertical scrollbar) = 1027 usable pixels
-            setBrowser.Columns.Add("Set Name", 402, HorizontalAlignment.Center);
-            setBrowser.Columns.Add("Key", 50, HorizontalAlignment.Center);
+            setBrowser.Columns.Add("Set Name", 397, HorizontalAlignment.Center);
+            setBrowser.Columns.Add("Key", 45, HorizontalAlignment.Center);
             setBrowser.Columns.Add("Card Code", 150, HorizontalAlignment.Center);
-            setBrowser.Columns.Add("Card Rarity", 175, HorizontalAlignment.Center);
-            setBrowser.Columns.Add("Set Language", 175, HorizontalAlignment.Center);
-            setBrowser.Columns.Add("Price", 75, HorizontalAlignment.Center);
+            setBrowser.Columns.Add("Card Rarity", 165, HorizontalAlignment.Center);
+            setBrowser.Columns.Add("Set Language", 185, HorizontalAlignment.Center);
+            setBrowser.Columns.Add("Price", 85, HorizontalAlignment.Center);
         }
 
         private void CardBrowser_Load(object sender, EventArgs e) {
@@ -113,7 +114,28 @@ namespace Ouroboros {
                 item.SubItems.Add(cardForDetails.listOfSets[i].cardSetID); // Full Card ID
                 item.SubItems.Add(cardForDetails.listOfSets[i].cardSetRarity); // Card Rarity
                 item.SubItems.Add(cardForDetails.listOfSets[i].cardSetLanguage); // Set Language
-                item.SubItems.Add("?"); // Card Price
+                
+                // Card Price
+                if (cardPriceCache.ContainsKey(cardName)) {
+                    List<CardPrice> cachedPrices = cardPriceCache[cardName];
+                    bool foundPrice = false;
+                    // We need to check on a binary matching.
+                    for (int j = 0; j < cachedPrices.Count; j++) {
+                        // Long ass conditional statement inbound... We use the second conditional statement to check if the same card exists (some NA/EN sets are catalogued without "EN" in the card code, but we only check if the first check failed).
+                        if ((cardForDetails.listOfSets[i].cardSetID == cachedPrices[j].cardCode && cardForDetails.listOfSets[i].cardSetRarity == cachedPrices[j].cardRarity) || (cardForDetails.listOfSets[i].cardSetID.Replace("EN", "") == cachedPrices[j].cardCode && cardForDetails.listOfSets[i].cardSetRarity == cachedPrices[j].cardRarity)) {
+                            // If card-code and rarity are identical, then we can set the price.
+                            item.SubItems.Add("$" + cachedPrices[j].getBestConditionPrice().ToString("n2"));
+                            foundPrice = true;
+                            break;
+                        }
+                    }
+                    if (!foundPrice) { // Only if we didn't find a price in the cache, should we add this.
+                        item.SubItems.Add("?"); 
+                    }
+                }
+                else { 
+                    item.SubItems.Add("?"); 
+                }
 
                 listViewCards.Add(item);
             }
@@ -368,7 +390,14 @@ namespace Ouroboros {
         private void getCardPrices(int selectedIndex) {
             KeyValuePair<string, Card> selectedKVPair = (KeyValuePair<string, Card>)cardList.Items[selectedIndex];
             List<CardPrice> prices = Utilities.getCardPrices(selectedKVPair.Value.cardName); // Retreive a list of card prices from troll and toad.
-            
+
+            if (!cardPriceCache.ContainsKey(selectedKVPair.Value.cardName)) { // If this result hasn't been cached already, add it.
+                cardPriceCache.Add(selectedKVPair.Value.cardName, prices);
+            }
+            else { // Otherwise update the cache.
+                cardPriceCache[selectedKVPair.Value.cardName] = prices;
+            }
+
             this.Invoke(new Action(() => { // Return to main thread to proceed with updating UI elements.
                 if (cardList.SelectedIndex == selectedIndex) { // We check if the current selected list element is the same as when the button was pressed.
                     // We need to check on a binary (i, j) matching.
