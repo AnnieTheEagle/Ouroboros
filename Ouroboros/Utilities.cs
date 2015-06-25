@@ -136,8 +136,8 @@ namespace Ouroboros {
             }
 
             // ATK, DEF and Level/Rank
-            c.cardATK = Utilities.getRDFValues("ATK", RDFCode)[0];
-            c.cardDEF = Utilities.getRDFValues("DEF", RDFCode)[0];
+            c.cardATK = Utilities.getRDFValues("ATK_string", RDFCode)[0];
+            c.cardDEF = Utilities.getRDFValues("DEF_string", RDFCode)[0];
             c.cardLvl = c.cardType.ToLower().Contains("xyz") ? Utilities.getRDFValues("Rank", RDFCode)[0] : Utilities.getRDFValues("Level", RDFCode)[0];
 
             // Card Text
