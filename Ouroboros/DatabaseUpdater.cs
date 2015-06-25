@@ -223,6 +223,8 @@ namespace Ouroboros {
             int numberImported = Utilities.importOwnedCards(DataStorage.database, newDB); // Import previously owned cards into new DB.
             addMessageToLog("Successfully imported " + numberImported.ToString("n0") + " owned cards.");
 
+            if (File.Exists("CardDB_v2.xml")) { File.Move("CardDB_v2.xml", "CardDB_v2_backup.xml"); }
+
             newDB.updateTimeString = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"); // Mark the time that the update is complete, next update is recommended 45 days from this time.
             newDB.databaseName = "v2"; // Change v2_update to v2 (no longer an "in progress" file).
             Utilities.saveDB(newDB);
