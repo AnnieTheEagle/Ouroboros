@@ -409,7 +409,8 @@ namespace Ouroboros {
             for (int i = 0; i < cardResults.Count(); i++) { // For each result...
                 string resultCode = cardResults[i];
 
-                int codeRarityStart = resultCode.IndexOf("> - ") + "> - ".Length;
+                string regexPattern = "> - [A-Z]+"; // Matches the first instance of the beginning of a set code in HTML.
+                int codeRarityStart = Regex.Match(resultCode, regexPattern).Index + "> - ".Length;
                 int codeRarityEnd = resultCode.IndexOf("\"", codeRarityStart);
                 string codeAndRarity = resultCode.Substring(codeRarityStart, codeRarityEnd - codeRarityStart);
 
@@ -423,8 +424,12 @@ namespace Ouroboros {
                     rarity = resultCode.Substring(resultCode.IndexOf("alt=\"") + "alt=\"".Length, resultCode.IndexOf(" - ", resultCode.IndexOf("alt=\"")) - (resultCode.IndexOf("alt=\"") + "alt=\"".Length));
                 }
                 else { // Otherwise extract it from crParts[1], removing any 1st edition and unlimited nonsense.
-                    rarity = crParts[1].Replace(" 1st Edition", "").Replace(" Unlimited", "");
+                    rarity = crParts[1];
                 }
+
+                // Clean First Edition and Unlimited Strings
+                rarity = rarity.Replace(" 1st Edition", "").Replace(" Unlimited", "");
+                cardCode = cardCode.Replace(" 1st Edition", "").Replace(" Unlimited", "");
 
                 Dictionary<string, double> conditionPrices = new Dictionary<string, double>(); // Dictionary mapping condition text to price.
 
