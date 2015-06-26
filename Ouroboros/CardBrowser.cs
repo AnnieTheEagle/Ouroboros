@@ -15,7 +15,7 @@ namespace Ouroboros {
     public partial class CardBrowser : Form {
         # region Fields
         SortedDictionary<string, Card> cardNames = new SortedDictionary<string, Card>(); // List of unique card names.
-        SortedDictionary<string, List<CardPrice>> cardPriceCache = new SortedDictionary<string, List<CardPrice>>(); // A temporary cache for card prices.
+        SortedDictionary<string, CardPrices> cardPriceCache = new SortedDictionary<string, CardPrices>(); // A temporary cache for card prices.
         bool userControlled = false; // Whether the checking of Set Browser items is user controlled or not.
         int currentCardIDX = -999; // Current card index selected.
 
@@ -117,18 +117,21 @@ namespace Ouroboros {
                 
                 // Card Price
                 if (cardPriceCache.ContainsKey(cardName)) {
-                    List<CardPrice> cachedPrices = cardPriceCache[cardName];
+                    CardPrices cachedPrices = cardPriceCache[cardName];
                     bool foundPrice = false;
-                    // We need to check on a binary matching.
-                    for (int j = 0; j < cachedPrices.Count; j++) {
-                        // Long ass conditional statement inbound... We use the second conditional statement to check if the same card exists (some NA/EN sets are catalogued without "EN" in the card code, but we only check if the first check failed).
-                        if ((cardForDetails.listOfSets[i].cardSetID == cachedPrices[j].cardCode && cardForDetails.listOfSets[i].cardSetRarity == cachedPrices[j].cardRarity) || (cardForDetails.listOfSets[i].cardSetID.Replace("EN", "") == cachedPrices[j].cardCode && cardForDetails.listOfSets[i].cardSetRarity == cachedPrices[j].cardRarity)) {
-                            // If card-code and rarity are identical, then we can set the price.
-                            item.SubItems.Add("$" + cachedPrices[j].getBestConditionPrice().ToString("n2"));
-                            foundPrice = true;
-                            break;
-                        }
+
+                    CardPrices.Datum cardPrice = cachedPrices.getCardPriceByID(cardForDetails.listOfSets[i].cardSetID, cardForDetails.listOfSets[i].cardSetRarity);
+
+                    if (cardPrice == null) {
+                        cardPrice = cachedPrices.getCardPriceByID(cardForDetails.listOfSets[i].cardSetID.Replace("EN", ""), cardForDetails.listOfSets[i].cardSetRarity);
                     }
+
+                    if (cardPrice != null && cardPrice.price_data.status == "success") {
+                        // If card-code and rarity are identical, then we can set the price.
+                        item.SubItems.Add("$" + cardPrice.price_data.data.prices.average.ToString("n2"));
+                        foundPrice = true;
+                    }
+
                     if (!foundPrice) { // Only if we didn't find a price in the cache, should we add this.
                         item.SubItems.Add("?"); 
                     }
@@ -389,7 +392,7 @@ namespace Ouroboros {
 
         private void getCardPrices(int selectedIndex) {
             KeyValuePair<string, Card> selectedKVPair = (KeyValuePair<string, Card>)cardList.Items[selectedIndex];
-            List<CardPrice> prices = Utilities.getCardPrices(selectedKVPair.Value.cardName); // Retreive a list of card prices from troll and toad.
+            CardPrices prices = Utilities.getCardPrices(selectedKVPair.Value.cardName); // Retreive a list of card prices from yugiohprices.com
 
             if (!cardPriceCache.ContainsKey(selectedKVPair.Value.cardName)) { // If this result hasn't been cached already, add it.
                 cardPriceCache.Add(selectedKVPair.Value.cardName, prices);
@@ -401,13 +404,16 @@ namespace Ouroboros {
             this.Invoke(new Action(() => { // Return to main thread to proceed with updating UI elements.
                 if (cardList.SelectedIndex == selectedIndex) { // We check if the current selected list element is the same as when the button was pressed.
                     // We need to check on a binary (i, j) matching.
-                    for (int i = 0; i < prices.Count; i++) {
-                        for (int j = 0; j < this.setBrowser.Items.Count; j++) {
-                            // Long ass conditional statement inbound... We use the second conditional statement to check if the same card exists (some NA/EN sets are catalogued without "EN" in the card code, but we only check if the first check failed).
-                            if ((this.setBrowser.Items[j].SubItems[2].Text == prices[i].cardCode && this.setBrowser.Items[j].SubItems[3].Text == prices[i].cardRarity) || (this.setBrowser.Items[j].SubItems[2].Text.Replace("EN", "") == prices[i].cardCode && this.setBrowser.Items[j].SubItems[3].Text == prices[i].cardRarity)) {
-                                // If card-code and rarity are identical, then we can set the price.
-                                this.setBrowser.Items[j].SubItems[5].Text = "$" + prices[i].getBestConditionPrice().ToString("n2");
-                            }
+                    for (int j = 0; j < this.setBrowser.Items.Count; j++) {
+                        CardPrices.Datum cardPrice = prices.getCardPriceByID(this.setBrowser.Items[j].SubItems[2].Text, this.setBrowser.Items[j].SubItems[3].Text);
+
+                        if (cardPrice == null) {
+                            cardPrice = prices.getCardPriceByID(this.setBrowser.Items[j].SubItems[2].Text.Replace("EN", ""), this.setBrowser.Items[j].SubItems[3].Text);
+                        }
+
+                        if (cardPrice != null && cardPrice.price_data.status == "success") {
+                            // If card-code and rarity are identical, then we can set the price.
+                            this.setBrowser.Items[j].SubItems[5].Text = "$" + cardPrice.price_data.data.prices.average.ToString("n2");
                         }
                     }
                 }
