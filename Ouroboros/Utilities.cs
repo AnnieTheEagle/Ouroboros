@@ -52,7 +52,9 @@ namespace Ouroboros {
             }
             return null;
         }
+        # endregion
 
+        # region Public Card Data Retrieval Methods
         public static List<string> getListOfCards(bool verbose) {
             List<string> listOfCards = new List<string>();
 
@@ -161,62 +163,6 @@ namespace Ouroboros {
             return c;
         }
 
-        public static void getSingleSetFromWikia(string setName) {
-            getCardsFromTCGList(setName, "(TCG-EN)");
-            getCardsFromTCGList(setName, "(TCG-NA)");
-            getCardsFromTCGList(setName, "(TCG-EU)");
-        }
-
-        public static void getCardsFromTCGList(string setName, string languageCode) {
-            string listCode = getPageCode("http://yugioh.wikia.com/wiki/Set_Card_Lists:" + setName.Replace("?", "%3F") + " " + languageCode);
-
-            int startTable = listCode.IndexOf("<table class=\"wikitable sortable card-list\">");
-            int endTable = listCode.IndexOf("</table>", startTable) + "</table>".Length;
-            string tableCode = listCode.Substring(startTable, endTable - startTable);
-
-            string[] parts = tableCode.Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries); // Split the HTML code into lines.
-            List<string> dataParts = new List<string>();
-            for (int i = 0; i < parts.Length; i++) {
-                if (Regex.Replace(parts[i].Trim(), @"<[^>]*>", String.Empty).Trim() != "") { // If it starts with a table-cell
-                    dataParts.Add(Regex.Replace(parts[i].Trim(), @"<[^>]*>", String.Empty).Trim()); // Trim string and then remove all HTML tags.
-                }
-            }
-            for (int i = 0; i < 4; i++) { dataParts.RemoveAt(0); } // Remove table headers.
-
-            for (int i = 0; i < (dataParts.Count() / 4); i++) { // Now for each 4-tuple of data-parts...
-                // [setID, cardName, setRarity, cardType] // We only care about element 0, 1 and 2.
-                Card c = DataStorage.database.getCardByName(dataParts[(4 * i) + 1]);
-
-                SetCard s = new SetCard();
-                s.cardSetName = setName; // Grab the set name parameters
-                s.cardSetID = dataParts[(4 * i)]; // Grab the set ID from the 4-tuple.
-                s.cardSetLanguage = lookupLanguageFromCode(languageCode); // Add the language selected
-                s.cardSetRarity = (dataParts[(4 * i) + 3] == "" ? "Unknown" : dataParts[(4 * i) + 2]); // Grab the rarity from the 3-tuple.
-
-                if (c != null) { // If card exists, add new set object.
-                    c.listOfSets.Add(s);
-                }
-                else { // Otherwise we need to try and grab the card data
-                    Card newCard = getCardData(dataParts[(4 * i) + 1]);
-
-                    string rarityPair = s.cardSetID + "," + s.cardSetRarity; // Convert two string elements into a pair with comma separation.
-
-                    if (!newCard.getListOfSetNamesCardIsIn().Contains(rarityPair)) { // If this <ID, rarity> pair is not in the list of sets, add it again, to be sure.
-                        newCard.listOfSets.Add(s);
-                    }
-                }
-            }
-        }
-
-        public static string lookupLanguageFromCode(string languageCode) { // Small method to map the language code to a human-readable language string.
-            switch (languageCode) {
-                case "(TCG-EN)": return "English - Worldwide";
-                case "(TCG-EU)": return "English - Europe";
-                case "(TCG-NA)": return "English - North America";
-                default: return "English";
-            }
-        }
-
         public static List<SetCard> getSetsFromWikiaArticle(string cardName) {
             List<SetCard> listOfSets = new List<SetCard>();
             string articleCode = getPageCode("http://yugioh.wikia.com/wiki/" + cardName.Replace("?", "%3F"));
@@ -301,6 +247,65 @@ namespace Ouroboros {
 
             return listOfSets; // Return the full list of SetCard.
         }
+        # endregion
+
+        # region Public Single Set Retrieval Methods
+        public static void getSingleSetFromWikia(string setName) {
+            getCardsFromTCGList(setName, "(TCG-EN)");
+            getCardsFromTCGList(setName, "(TCG-NA)");
+            getCardsFromTCGList(setName, "(TCG-EU)");
+        }
+
+        public static void getCardsFromTCGList(string setName, string languageCode) {
+            string listCode = getPageCode("http://yugioh.wikia.com/wiki/Set_Card_Lists:" + setName.Replace("?", "%3F") + " " + languageCode);
+
+            int startTable = listCode.IndexOf("<table class=\"wikitable sortable card-list\">");
+            int endTable = listCode.IndexOf("</table>", startTable) + "</table>".Length;
+            string tableCode = listCode.Substring(startTable, endTable - startTable);
+
+            string[] parts = tableCode.Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries); // Split the HTML code into lines.
+            List<string> dataParts = new List<string>();
+            for (int i = 0; i < parts.Length; i++) {
+                if (Regex.Replace(parts[i].Trim(), @"<[^>]*>", String.Empty).Trim() != "") { // If it starts with a table-cell
+                    dataParts.Add(Regex.Replace(parts[i].Trim(), @"<[^>]*>", String.Empty).Trim()); // Trim string and then remove all HTML tags.
+                }
+            }
+            for (int i = 0; i < 4; i++) { dataParts.RemoveAt(0); } // Remove table headers.
+
+            for (int i = 0; i < (dataParts.Count() / 4); i++) { // Now for each 4-tuple of data-parts...
+                // [setID, cardName, setRarity, cardType] // We only care about element 0, 1 and 2.
+                Card c = DataStorage.database.getCardByName(dataParts[(4 * i) + 1]);
+
+                SetCard s = new SetCard();
+                s.cardSetName = setName; // Grab the set name parameters
+                s.cardSetID = dataParts[(4 * i)]; // Grab the set ID from the 4-tuple.
+                s.cardSetLanguage = lookupLanguageFromCode(languageCode); // Add the language selected
+                s.cardSetRarity = (dataParts[(4 * i) + 3] == "" ? "Unknown" : dataParts[(4 * i) + 2]); // Grab the rarity from the 3-tuple.
+
+                if (c != null) { // If card exists, add new set object.
+                    c.listOfSets.Add(s);
+                }
+                else { // Otherwise we need to try and grab the card data
+                    Card newCard = getCardData(dataParts[(4 * i) + 1]);
+
+                    string rarityPair = s.cardSetID + "," + s.cardSetRarity; // Convert two string elements into a pair with comma separation.
+
+                    if (!newCard.getListOfSetNamesCardIsIn().Contains(rarityPair)) { // If this <ID, rarity> pair is not in the list of sets, add it again, to be sure.
+                        newCard.listOfSets.Add(s);
+                    }
+                }
+            }
+        }
+
+        public static string lookupLanguageFromCode(string languageCode) { // Small method to map the language code to a human-readable language string.
+            switch (languageCode) {
+                case "(TCG-EN)": return "English - Worldwide";
+                case "(TCG-EU)": return "English - Europe";
+                case "(TCG-NA)": return "English - North America";
+                default: return "English";
+            }
+        }
+
         # endregion
 
         # region Public Wikia Processing Methods
