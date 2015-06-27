@@ -405,31 +405,59 @@ namespace Ouroboros {
 
         public static int importOwnedCards(CardDB oldDB, CardDB newDB) {
             int owned = 0; // Number of owned cards imported.
-            foreach (Card o in oldDB.listOfCards) { // For each card in the old database.
-                Card n = newDB.listOfCards.Find(p => p.cardName == o.cardName); // We find the card in the new database (by checking for identical names).
+            int total = 0; // Total number of owned cards.
+            List<SetCard> oldOwned = new List<SetCard>();
+            using (StreamWriter sw = new StreamWriter("DBUpdate.log")) {
+                sw.WriteLine("Card Database Update Log: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                
+                // Successful imports in the log
+                sw.WriteLine("============== Successful Imports ===============");
+                foreach (Card o in oldDB.listOfCards) { // For each card in the old database.
+                    Card n = newDB.listOfCards.Find(p => p.cardName == o.cardName); // We find the card in the new database (by checking for identical names).
 
-                foreach (SetCard so in o.listOfSets) { // For each SetCard in the old card's list of sets...
-                    SetCard sn = n.listOfSets.Find(s => (s.cardSetID == so.cardSetID && s.cardSetRarity == so.cardSetRarity)); // We find the matching SetCard in the new card's list of set...
+                    foreach (SetCard so in o.listOfSets) { // For each SetCard in the old card's list of sets...
+                        SetCard sn = n.listOfSets.Find(s => (s.cardSetID == so.cardSetID && s.cardSetRarity == so.cardSetRarity)); // We find the matching SetCard in the new card's list of set...
+                    
+                        if (so.cardOwned) { // Add it to oldOwned, it will be removed if imported successfully.
+                            oldOwned.Add(so); 
+                            total++;
+                        } 
 
-                    if (sn != null) {
-                        sn.cardOwned = so.cardOwned; // And we copy across the cardOwned state from the old DB to the new DB.
-                        if (so.cardOwned) { owned++; } // Add 1 to imported.
+                        if (sn != null) {
+                            sn.cardOwned = so.cardOwned; // And we copy across the cardOwned state from the old DB to the new DB.
+                            if (so.cardOwned) {
+                                owned++; // Add 1 to imported.
+                                sw.Write("-> Successfully imported " + so.cardSetID + " (" + so.cardSetRarity + ").");
+                                oldOwned.Remove(so); 
+                            } 
+                        }
                     }
                 }
+
+                // Log showing ones which failed to transfer...
+                sw.WriteLine("============== Failed to Import ===============");
+                foreach (SetCard failedToImport in oldOwned) {
+                    sw.Write("-> Failed to import: " + failedToImport.cardSetID + " (" + failedToImport.cardSetRarity + ").");
+                }
+
+                // Import Statistics in Log
+                sw.WriteLine("============== Import Statistics ===============");
+                sw.WriteLine("-> Successfully imported: " + owned.ToString("n0") + " of " + total.ToString("n0") + ".");
+                sw.WriteLine("-> Failed to import: " + oldOwned.Count().ToString("n0"));
             }
             return owned;
         }
 
-        public static CardDB FromXML<CardDB>(string xml) { // Returns a CardDB out of an input XML string
+        public static T FromXML<T>(string xml) { // Returns a CardDB out of an input XML string
             using (StringReader stringReader = new StringReader(xml)) {
-                XmlSerializer serializer = new XmlSerializer(typeof(CardDB));
-                return (CardDB)serializer.Deserialize(stringReader); // Deserialize the XML into an object.
+                XmlSerializer serializer = new XmlSerializer(typeof(T));
+                return (T)serializer.Deserialize(stringReader); // Deserialize the XML into an object.
             }
         }
 
-        public static string ToXML<CardDB>(CardDB obj) { // Turns a CardDB object into an XML string.
+        public static string ToXML<T>(T obj) { // Turns a CardDB object into an XML string.
             using (StringWriter stringWriter = new StringWriter(new StringBuilder())) {
-                XmlSerializer xmlSerializer = new XmlSerializer(typeof(CardDB));
+                XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
                 xmlSerializer.Serialize(stringWriter, obj); // Serialize the object into XML.
                 return stringWriter.ToString();
             }
