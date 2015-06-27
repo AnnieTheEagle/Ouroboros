@@ -404,6 +404,26 @@ namespace Ouroboros {
 
             return prices;
         }
+
+        public static string getHumanReadableTime(DateTime dt) {
+            TimeSpan ts = DateTime.Now.Subtract(dt);
+
+            if (ts.TotalDays > 31) {
+                return string.Format("{0} weeks ago", Math.Ceiling((double)ts.TotalDays / 7));
+            }
+            else if (ts.TotalDays > 3) {
+                return string.Format("{0} days ago", (int)ts.TotalDays);
+            }
+            else if (ts.TotalHours > 2) { 
+                 return string.Format("{0} hours ago", (int)ts.TotalHours);
+            }
+            else if (ts.TotalSeconds > 60) {
+                return string.Format("{0} minutes ago", (int)ts.TotalMinutes);
+            }
+            else {
+                return string.Format("{0} seconds ago", (int)ts.TotalSeconds);
+            }
+        }
         # endregion
 
         # region Public Database IO Methods

@@ -71,8 +71,9 @@
             this.pendulumText = new System.Windows.Forms.TextBox();
             this.textLabel_p = new System.Windows.Forms.Label();
             this.cardText_p = new System.Windows.Forms.TextBox();
-            this.cardList = new Ouroboros.CardListBox();
             this.getPricesButton = new System.Windows.Forms.Button();
+            this.cachedPriceAge = new System.Windows.Forms.Label();
+            this.cardList = new Ouroboros.CardListBox();
             this.menuStrip1.SuspendLayout();
             this.cardTypingBox.SuspendLayout();
             this.monsterDetailsBox.SuspendLayout();
@@ -160,7 +161,7 @@
             this.setBrowser.Name = "setBrowser";
             this.setBrowser.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.setBrowser.ShowItemToolTips = true;
-            this.setBrowser.Size = new System.Drawing.Size(1048, 286);
+            this.setBrowser.Size = new System.Drawing.Size(1048, 238);
             this.setBrowser.TabIndex = 3;
             this.setBrowser.UseCompatibleStateImageBehavior = false;
             this.setBrowser.View = System.Windows.Forms.View.Details;
@@ -538,20 +539,6 @@
             this.cardText_p.Size = new System.Drawing.Size(518, 116);
             this.cardText_p.TabIndex = 0;
             // 
-            // cardList
-            // 
-            this.cardList.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawVariable;
-            this.cardList.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cardList.FormattingEnabled = true;
-            this.cardList.ItemHeight = 24;
-            this.cardList.Location = new System.Drawing.Point(1, 26);
-            this.cardList.Name = "cardList";
-            this.cardList.Size = new System.Drawing.Size(414, 1012);
-            this.cardList.TabIndex = 1;
-            this.cardList.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.cardList_DrawItem);
-            this.cardList.SelectedIndexChanged += new System.EventHandler(this.cardList_SelectedIndexChanged);
-            this.cardList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.cardList_KeyDown);
-            // 
             // getPricesButton
             // 
             this.getPricesButton.Location = new System.Drawing.Point(1394, 712);
@@ -562,11 +549,38 @@
             this.getPricesButton.UseVisualStyleBackColor = true;
             this.getPricesButton.Click += new System.EventHandler(this.getPricesButton_Click);
             // 
+            // cachedPriceAge
+            // 
+            this.cachedPriceAge.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cachedPriceAge.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cachedPriceAge.ForeColor = System.Drawing.Color.DimGray;
+            this.cachedPriceAge.Location = new System.Drawing.Point(1137, 710);
+            this.cachedPriceAge.Name = "cachedPriceAge";
+            this.cachedPriceAge.Size = new System.Drawing.Size(253, 24);
+            this.cachedPriceAge.TabIndex = 19;
+            this.cachedPriceAge.Text = "Updated 0 seconds ago";
+            this.cachedPriceAge.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // cardList
+            // 
+            this.cardList.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawVariable;
+            this.cardList.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cardList.FormattingEnabled = true;
+            this.cardList.ItemHeight = 24;
+            this.cardList.Location = new System.Drawing.Point(1, 26);
+            this.cardList.Name = "cardList";
+            this.cardList.Size = new System.Drawing.Size(414, 964);
+            this.cardList.TabIndex = 1;
+            this.cardList.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.cardList_DrawItem);
+            this.cardList.SelectedIndexChanged += new System.EventHandler(this.cardList_SelectedIndexChanged);
+            this.cardList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.cardList_KeyDown);
+            // 
             // CardBrowser
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1481, 1038);
+            this.ClientSize = new System.Drawing.Size(1481, 990);
+            this.Controls.Add(this.cachedPriceAge);
             this.Controls.Add(this.getPricesButton);
             this.Controls.Add(this.pendulumTextGroup);
             this.Controls.Add(this.setsLabel);
@@ -648,5 +662,6 @@
         private System.Windows.Forms.TextBox cardText_p;
         private System.Windows.Forms.ToolStripMenuItem addCardSetToolStripMenuItem;
         private System.Windows.Forms.Button getPricesButton;
+        private System.Windows.Forms.Label cachedPriceAge;
     }
 }

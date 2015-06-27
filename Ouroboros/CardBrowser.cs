@@ -123,7 +123,6 @@ namespace Ouroboros {
 
                 if (cached != null) {
                     bool foundPrice = false;
-
                     CardPrices.Datum cardPrice = cached.getCardPriceByID(cardForDetails.listOfSets[i].cardSetID, cardForDetails.listOfSets[i].cardSetRarity);
 
                     if (cardPrice == null) {
@@ -133,16 +132,18 @@ namespace Ouroboros {
                     if (cardPrice != null && cardPrice.price_data.status == "success") {
                         // If card-code and rarity are identical, then we can set the price.
                         item.SubItems.Add("$" + cardPrice.price_data.data.prices.average.ToString("n2"));
+                        cachedPriceAge.Text = "Updated " + Utilities.getHumanReadableTime(cached.timeStamp);
                         foundPrice = true;
                     }
 
-                    if (!foundPrice) { // Only if we didn't find a price in the cache, should we add this.
-                        item.SubItems.Add("?"); 
-                    }
+                    if (!foundPrice) { item.SubItems.Add("?"); } // Only if we didn't find a price in the cache, should we add "?".
                 }
-                else { 
-                    item.SubItems.Add("?"); 
-                }
+                else { // If no cached price, add "?"
+                    item.SubItems.Add("?");
+                    cachedPriceAge.Text = "No price data.";
+                } 
+
+                
 
                 listViewCards.Add(item);
             }
@@ -433,6 +434,9 @@ namespace Ouroboros {
                 // Return the button to the normal state.
                 getPricesButton.Text = "Get Prices!";
                 getPricesButton.Enabled = true;
+
+                // Update cache age to be 0 seconds ago (we just grabbed them)
+                cachedPriceAge.Text = "Updated 0 seconds ago";
             }));
 
             Utilities.savePriceCache(cardPriceCache);
