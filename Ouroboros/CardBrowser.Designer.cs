@@ -205,7 +205,7 @@
             // 
             this.cardDEF.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cardDEF.Font = new System.Drawing.Font("Microsoft Sans Serif", 48F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cardDEF.Location = new System.Drawing.Point(663, 44);
+            this.cardDEF.Location = new System.Drawing.Point(664, 44);
             this.cardDEF.Name = "cardDEF";
             this.cardDEF.Size = new System.Drawing.Size(384, 73);
             this.cardDEF.TabIndex = 7;
@@ -302,7 +302,7 @@
             this.monsterDetailsBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.monsterDetailsBox.Location = new System.Drawing.Point(421, 234);
             this.monsterDetailsBox.Name = "monsterDetailsBox";
-            this.monsterDetailsBox.Size = new System.Drawing.Size(1048, 120);
+            this.monsterDetailsBox.Size = new System.Drawing.Size(1049, 120);
             this.monsterDetailsBox.TabIndex = 15;
             this.monsterDetailsBox.TabStop = false;
             this.monsterDetailsBox.Text = "Monster Details";
@@ -333,7 +333,7 @@
             // 
             this.defenseLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.defenseLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.defenseLabel.Location = new System.Drawing.Point(887, 18);
+            this.defenseLabel.Location = new System.Drawing.Point(888, 18);
             this.defenseLabel.Name = "defenseLabel";
             this.defenseLabel.Size = new System.Drawing.Size(145, 37);
             this.defenseLabel.TabIndex = 14;
@@ -391,7 +391,7 @@
             this.collectionBox.Controls.Add(this.outOfLabel);
             this.collectionBox.Controls.Add(this.haveCount);
             this.collectionBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.collectionBox.Location = new System.Drawing.Point(959, 370);
+            this.collectionBox.Location = new System.Drawing.Point(960, 370);
             this.collectionBox.Name = "collectionBox";
             this.collectionBox.Size = new System.Drawing.Size(509, 331);
             this.collectionBox.TabIndex = 17;
@@ -541,7 +541,8 @@
             // 
             // getPricesButton
             // 
-            this.getPricesButton.Location = new System.Drawing.Point(1394, 712);
+            this.getPricesButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.getPricesButton.Location = new System.Drawing.Point(1395, 711);
             this.getPricesButton.Name = "getPricesButton";
             this.getPricesButton.Size = new System.Drawing.Size(75, 23);
             this.getPricesButton.TabIndex = 18;
@@ -552,7 +553,7 @@
             // cachedPriceAge
             // 
             this.cachedPriceAge.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cachedPriceAge.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cachedPriceAge.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cachedPriceAge.ForeColor = System.Drawing.Color.DimGray;
             this.cachedPriceAge.Location = new System.Drawing.Point(1137, 710);
             this.cachedPriceAge.Name = "cachedPriceAge";

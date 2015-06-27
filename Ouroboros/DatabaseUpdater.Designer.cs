@@ -40,6 +40,7 @@
             this.logMessage2 = new System.Windows.Forms.Label();
             this.logMessage1 = new System.Windows.Forms.Label();
             this.logMessage7 = new System.Windows.Forms.Label();
+            this.versionLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.logoPicture)).BeginInit();
             this.SuspendLayout();
             // 
@@ -161,12 +162,24 @@
             this.logMessage7.TabIndex = 11;
             this.logMessage7.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // Ouroboros
+            // versionLabel
+            // 
+            this.versionLabel.AutoSize = true;
+            this.versionLabel.BackColor = System.Drawing.Color.Transparent;
+            this.versionLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.versionLabel.Location = new System.Drawing.Point(1, 589);
+            this.versionLabel.Name = "versionLabel";
+            this.versionLabel.Size = new System.Drawing.Size(77, 16);
+            this.versionLabel.TabIndex = 12;
+            this.versionLabel.Text = "Version null";
+            // 
+            // DatabaseUpdater
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImage = global::Ouroboros.Properties.Resources.loader_bg;
             this.ClientSize = new System.Drawing.Size(580, 607);
+            this.Controls.Add(this.versionLabel);
             this.Controls.Add(this.logMessage7);
             this.Controls.Add(this.logMessage1);
             this.Controls.Add(this.logMessage2);
@@ -180,7 +193,7 @@
             this.Controls.Add(this.appName);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "Ouroboros";
+            this.Name = "DatabaseUpdater";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Ouroboros";
             this.Load += new System.EventHandler(this.Ouroboros_Load);
@@ -203,6 +216,7 @@
         private System.Windows.Forms.Label logMessage2;
         private System.Windows.Forms.Label logMessage1;
         private System.Windows.Forms.Label logMessage7;
+        private System.Windows.Forms.Label versionLabel;
     }
 }
 

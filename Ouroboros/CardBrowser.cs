@@ -84,6 +84,9 @@ namespace Ouroboros {
             collectionStatus.Font = new Font(DatabaseUpdater.pfc.Families[1], collectionStatus.Font.Size);
             statusLabel.Font = new Font(DatabaseUpdater.pfc.Families[1], statusLabel.Font.Size);
 
+            cachedPriceAge.Font = new Font(DatabaseUpdater.pfc.Families[0], cachedPriceAge.Font.Size);
+            getPricesButton.Font = new Font(DatabaseUpdater.pfc.Families[0], getPricesButton.Font.Size);
+
             // Add a list of card names to the card browser, unique card names only.
             foreach (Card c in DataStorage.database.listOfCards) {
                 if (!cardNames.ContainsKey(c.cardName)) { 

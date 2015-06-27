@@ -46,6 +46,7 @@ namespace Ouroboros {
         private void Ouroboros_Load(object sender, EventArgs e) { 
             // On form-load (after initialization of custom fonts), set the custom fonts for the labels here.
             appName.Font = new Font(pfc.Families[0], appName.Font.Size);
+            versionLabel.Font = new Font(pfc.Families[0], versionLabel.Font.Size);
             statusLabel.Font = new Font(pfc.Families[0], statusLabel.Font.Size);
             logMessage1.Font = new Font(pfc.Families[0], logMessage1.Font.Size);
             logMessage2.Font = new Font(pfc.Families[0], logMessage2.Font.Size);
@@ -54,6 +55,9 @@ namespace Ouroboros {
             logMessage5.Font = new Font(pfc.Families[0], logMessage5.Font.Size);
             logMessage6.Font = new Font(pfc.Families[0], logMessage6.Font.Size);
             logMessage7.Font = new Font(pfc.Families[0], logMessage7.Font.Size);
+
+            // Update version label.
+            versionLabel.Text = "Version " + Program.APP_VERSION;
         }
 
         private void InitializeCustomFonts() { 
