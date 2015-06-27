@@ -394,8 +394,13 @@ namespace Ouroboros {
 
         # region Public Card Prices Methods
         public static CardPrices getCardPrices(string cardName) {
-            string jsonResponse = getPageCode("http://yugiohprices.com/api/get_card_prices/" + cardName);
+            string jsonResponse = getPageCode("http://yugiohprices.com/api/get_card_prices/" + System.Net.WebUtility.UrlEncode(cardName));
             CardPrices prices = JsonConvert.DeserializeObject<CardPrices>(jsonResponse);
+            
+            if (prices.status == "fail") { return null; } // Check the the prices were grabbed successfully.
+            
+            prices.name = cardName;
+            prices.timeStamp = DateTime.Now;
 
             return prices;
         }
@@ -460,6 +465,37 @@ namespace Ouroboros {
                 XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
                 xmlSerializer.Serialize(stringWriter, obj); // Serialize the object into XML.
                 return stringWriter.ToString();
+            }
+        }
+
+        public static void savePriceCache(PriceCache pc) {
+            string xml = Utilities.ToXML<PriceCache>(pc);
+             try {
+                using (StreamWriter sw = new StreamWriter("PriceCache.xml")) {
+                    sw.Write(xml);
+                }
+            }
+            catch (IOException IOX) {
+                Console.WriteLine("An error occured trying to save the price_cache... retrying in 5 seconds. " + IOX.StackTrace);
+                Thread.Sleep(5000);
+                using (StreamWriter sw = new StreamWriter("PriceCache.xml")) {
+                    sw.Write(xml);
+                }
+            }
+        }
+
+        public static PriceCache loadPriceCache() { 
+            if (File.Exists("PriceCache.xml")) { // If it exists, load the file using the deserializer.
+                string xml = "";
+                using (StreamReader indexer = new StreamReader("PriceCache.xml")) {
+                    xml = indexer.ReadToEnd();
+                }
+                PriceCache pc = Utilities.FromXML<PriceCache>(xml);
+                return pc;
+            }
+            else { // Otherwise create a new DB.
+                PriceCache pc = new PriceCache();
+                return pc;
             }
         }
 

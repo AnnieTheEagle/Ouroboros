@@ -4,12 +4,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 # endregion
 
 namespace Ouroboros {
     public class CardPrices {
         # region Fields
+        [XmlElement("CardName")]
+        public string name { get; set; }
+        [XmlElement("Status")]
         public string status { get; set; }
+        [XmlIgnore]
+        public DateTime timeStamp { get; set; }
+        [XmlElement("Timestamp")]
+        public string timeStampString {
+            get { return this.timeStamp.ToString("yyyy-MM-dd HH:mm:ss"); }
+            set { this.timeStamp = DateTime.Parse(value); }
+        }
+        [XmlElement("Data")]
         public List<Datum> data { get; set; }
         # endregion
 

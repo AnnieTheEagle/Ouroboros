@@ -9,15 +9,16 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Serialization;
 # endregion
 
 namespace Ouroboros {
     public partial class CardBrowser : Form {
         # region Fields
         SortedDictionary<string, Card> cardNames = new SortedDictionary<string, Card>(); // List of unique card names.
-        SortedDictionary<string, CardPrices> cardPriceCache = new SortedDictionary<string, CardPrices>(); // A temporary cache for card prices.
         bool userControlled = false; // Whether the checking of Set Browser items is user controlled or not.
         int currentCardIDX = -999; // Current card index selected.
+        PriceCache cardPriceCache = null; // Card Prices Cache
 
         [DllImport("User32.dll")]
         public static extern Int32 SetForegroundWindow(int hWnd);   
@@ -90,6 +91,8 @@ namespace Ouroboros {
                 }
             }
 
+            cardPriceCache = Utilities.loadPriceCache();
+
             // Sort the card names and then set the dataSource.
             cardList.DataSource = new BindingSource(cardNames, null);
             cardList.DisplayMember = "Key";
@@ -116,14 +119,15 @@ namespace Ouroboros {
                 item.SubItems.Add(cardForDetails.listOfSets[i].cardSetLanguage); // Set Language
                 
                 // Card Price
-                if (cardPriceCache.ContainsKey(cardName)) {
-                    CardPrices cachedPrices = cardPriceCache[cardName];
+                CardPrices cached = cardPriceCache.cache.FirstOrDefault(x => x.name == cardName);
+
+                if (cached != null) {
                     bool foundPrice = false;
 
-                    CardPrices.Datum cardPrice = cachedPrices.getCardPriceByID(cardForDetails.listOfSets[i].cardSetID, cardForDetails.listOfSets[i].cardSetRarity);
+                    CardPrices.Datum cardPrice = cached.getCardPriceByID(cardForDetails.listOfSets[i].cardSetID, cardForDetails.listOfSets[i].cardSetRarity);
 
                     if (cardPrice == null) {
-                        cardPrice = cachedPrices.getCardPriceByID(cardForDetails.listOfSets[i].cardSetID.Replace("EN", ""), cardForDetails.listOfSets[i].cardSetRarity);
+                        cardPrice = cached.getCardPriceByID(cardForDetails.listOfSets[i].cardSetID.Replace("EN", ""), cardForDetails.listOfSets[i].cardSetRarity);
                     }
 
                     if (cardPrice != null && cardPrice.price_data.status == "success") {
@@ -393,12 +397,21 @@ namespace Ouroboros {
         private void getCardPrices(int selectedIndex) {
             KeyValuePair<string, Card> selectedKVPair = (KeyValuePair<string, Card>)cardList.Items[selectedIndex];
             CardPrices prices = Utilities.getCardPrices(selectedKVPair.Value.cardName); // Retreive a list of card prices from yugiohprices.com
+            
+            if (prices == null) { // No prices found :(
+                // Return the button to the normal state.
+                getPricesButton.Text = "Get Prices!";
+                getPricesButton.Enabled = true;
+                return;
+            }
 
-            if (!cardPriceCache.ContainsKey(selectedKVPair.Value.cardName)) { // If this result hasn't been cached already, add it.
-                cardPriceCache.Add(selectedKVPair.Value.cardName, prices);
+            CardPrices cached = cardPriceCache.cache.FirstOrDefault(x => x.name == selectedKVPair.Value.cardName);
+            if (cached == null) { // If this result hasn't been cached already, add it.
+                cardPriceCache.cache.Add(prices);
             }
             else { // Otherwise update the cache.
-                cardPriceCache[selectedKVPair.Value.cardName] = prices;
+                cardPriceCache.cache.Remove(cached);
+                cardPriceCache.cache.Add(prices);
             }
 
             this.Invoke(new Action(() => { // Return to main thread to proceed with updating UI elements.
@@ -421,15 +434,19 @@ namespace Ouroboros {
                 getPricesButton.Text = "Get Prices!";
                 getPricesButton.Enabled = true;
             }));
+
+            Utilities.savePriceCache(cardPriceCache);
         }
 
         private void CardBrowser_FormClosing(object sender, FormClosingEventArgs e) { 
-            // Save database on form closing...
+            // Save database and price cache on form closing...
             Utilities.saveDB(DataStorage.database);
             Console.WriteLine("[DB Manager] Database was saved successfully before program closure!");
+
+            Utilities.savePriceCache(this.cardPriceCache);
+            Console.WriteLine("[Price Cache] Price Cache was saved successfully before program closure!");
+
         }
         # endregion
-
-
     }
 }

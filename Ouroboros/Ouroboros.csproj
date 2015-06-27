@@ -78,6 +78,7 @@
       <DependentUpon>DatabaseUpdater.cs</DependentUpon>
     </Compile>
     <Compile Include="DataStorage.cs" />
+    <Compile Include="PriceCache.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SetCard.cs" />
