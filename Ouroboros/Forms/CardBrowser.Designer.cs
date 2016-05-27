@@ -74,6 +74,7 @@
             this.getPricesButton = new System.Windows.Forms.Button();
             this.cachedPriceAge = new System.Windows.Forms.Label();
             this.cardList = new Ouroboros.CardListBox();
+            this.findMismatchesFromUpdate = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.cardTypingBox.SuspendLayout();
             this.monsterDetailsBox.SuspendLayout();
@@ -97,6 +98,7 @@
             // 
             this.settingsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addCardSetToolStripMenuItem,
+            this.findMismatchesFromUpdate,
             this.saveDatabaseToolStripMenuItem,
             this.aboutToolStripMenuItem,
             this.exitToolStripMenuItem});
@@ -107,7 +109,7 @@
             // addCardSetToolStripMenuItem
             // 
             this.addCardSetToolStripMenuItem.Name = "addCardSetToolStripMenuItem";
-            this.addCardSetToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.addCardSetToolStripMenuItem.Size = new System.Drawing.Size(258, 22);
             this.addCardSetToolStripMenuItem.Text = "Add Card Set";
             this.addCardSetToolStripMenuItem.Click += new System.EventHandler(this.addCardSetToolStripMenuItem_Click);
             // 
@@ -115,14 +117,14 @@
             // 
             this.saveDatabaseToolStripMenuItem.Name = "saveDatabaseToolStripMenuItem";
             this.saveDatabaseToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.saveDatabaseToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.saveDatabaseToolStripMenuItem.Size = new System.Drawing.Size(258, 22);
             this.saveDatabaseToolStripMenuItem.Text = "Save Database";
             this.saveDatabaseToolStripMenuItem.Click += new System.EventHandler(this.saveDatabaseToolStripMenuItem_Click);
             // 
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(258, 22);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
@@ -130,7 +132,7 @@
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             this.exitToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(258, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -576,6 +578,13 @@
             this.cardList.SelectedIndexChanged += new System.EventHandler(this.cardList_SelectedIndexChanged);
             this.cardList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.cardList_KeyDown);
             // 
+            // findMismatchesFromUpdate
+            // 
+            this.findMismatchesFromUpdate.Name = "findMismatchesFromUpdate";
+            this.findMismatchesFromUpdate.Size = new System.Drawing.Size(258, 22);
+            this.findMismatchesFromUpdate.Text = "Find Mismatches from Last Update";
+            this.findMismatchesFromUpdate.Click += new System.EventHandler(this.findMismatchesFromUpdate_Click);
+            // 
             // CardBrowser
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -664,5 +673,6 @@
         private System.Windows.Forms.ToolStripMenuItem addCardSetToolStripMenuItem;
         private System.Windows.Forms.Button getPricesButton;
         private System.Windows.Forms.Label cachedPriceAge;
+        private System.Windows.Forms.ToolStripMenuItem findMismatchesFromUpdate;
     }
 }

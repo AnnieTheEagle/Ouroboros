@@ -361,6 +361,37 @@ namespace Ouroboros {
 
         }
 
+        private void findMismatchesFromUpdate_Click(object sender, EventArgs e) {
+            CardDB old = Utilities.loadDB("v2_backup", null);
+            CardDB current = DataStorage.database;
+
+            Dictionary<SetCard, string> oldOwned = new Dictionary<SetCard, string>();
+
+            Console.WriteLine("Finding mismatches...");
+            foreach (Card o in old.listOfCards) { // For each card in the old database.
+                Card n = current.listOfCards.Find(p => p.cardName.Equals(o.cardName, StringComparison.InvariantCultureIgnoreCase)); // We find the card in the new database (by checking for identical names).
+
+                foreach (SetCard so in o.listOfSets) { // For each SetCard in the old card's list of sets...
+                    SetCard sn = n.listOfSets.Find(s => (s.cardSetID == so.cardSetID && s.cardSetRarity == so.cardSetRarity)); // We find the matching SetCard in the new card's list of set...
+
+                    if (so.cardOwned) { // Add it to oldOwned, it will be removed if imported successfully.
+                        oldOwned.Add(so, o.cardName);
+                    }
+
+                    if (sn != null) {
+                        sn.cardOwned = so.cardOwned; // And we copy across the cardOwned state from the old DB to the new DB.
+                        if (so.cardOwned) {
+                            oldOwned.Remove(so);
+                        }
+                    }
+                }
+            }
+
+            foreach (SetCard sd in oldOwned.Keys) {
+                Console.WriteLine("-> '" + oldOwned[sd] + "' with set ID: " + sd.cardSetID + " (" + sd.cardSetRarity + ")");
+            }
+        }
+
         private void collectorReportToolStripMenuItem_Click(object sender, EventArgs e) {
             CollectorReport form = new CollectorReport();
             form.ShowDialog(); // Show report.
@@ -403,9 +434,11 @@ namespace Ouroboros {
             CardPrices prices = Utilities.getCardPrices(selectedKVPair.Value.cardName); // Retreive a list of card prices from yugiohprices.com
             
             if (prices == null) { // No prices found :(
-                // Return the button to the normal state.
-                getPricesButton.Text = "Get Prices!";
-                getPricesButton.Enabled = true;
+                this.Invoke(new Action(() => { // Return to main thread to proceed with updating UI elements.
+                    // Return the button to the normal state.
+                    getPricesButton.Text = "Get Prices!";
+                    getPricesButton.Enabled = true;
+                }));
                 return;
             }
 
@@ -454,6 +487,6 @@ namespace Ouroboros {
             Console.WriteLine("[Price Cache] Price Cache was saved successfully before program closure!");
 
         }
-        # endregion
+        #endregion
     }
 }

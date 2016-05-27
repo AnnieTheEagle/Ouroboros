@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Cache;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -16,8 +17,20 @@ namespace Ouroboros {
     public class Utilities {
         # region Public Web Methods
         public static string getPageCode(string url) { // Get the HTML page code of a web URL.
+            HttpRequestCachePolicy policy = new HttpRequestCachePolicy(HttpRequestCacheLevel.Default);
+            HttpWebRequest.DefaultCachePolicy = policy;
+
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+
+            HttpRequestCachePolicy noCachePolicy = new HttpRequestCachePolicy(HttpRequestCacheLevel.NoCacheNoStore);
+            request.CachePolicy = noCachePolicy;
+
             request.Method = "GET";
+            request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36";
+            request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+            request.Referer = new Uri(url).Host;
+            request.KeepAlive = true;
+
             int tries = 0;
             while (true) { // While we dont have a real response.
                 tries++;
@@ -27,7 +40,9 @@ namespace Ouroboros {
                     if (res.StatusCode == HttpStatusCode.OK) { // If we got an OK status code, return the StreamReader as a string.
                         Stream stream = res.GetResponseStream();
                         StreamReader reader = new StreamReader(stream);
-                        return reader.ReadToEnd();
+
+                        string sss = reader.ReadToEnd();
+                        return sss;
                     }
                     else if (res.StatusCode == HttpStatusCode.Unauthorized || res.StatusCode == HttpStatusCode.Forbidden) { // If we get a forbidden or unauthorized response, return an error
                         return "error";
@@ -166,7 +181,7 @@ namespace Ouroboros {
 
         public static List<SetCard> getSetsFromWikiaArticle(string cardName) {
             List<SetCard> listOfSets = new List<SetCard>();
-            string articleCode = getPageCode("http://yugioh.wikia.com/wiki/" + cardName.Replace("?", "%3F"));
+            string articleCode = getPageCode("http://yugioh.wikia.com/wiki/" + cardName.Replace("?", "%3F").Replace("%20", "_").Replace(" ", "_"));
 
             if (articleCode == null) { return null; } // Signal an error occured...
 
@@ -181,7 +196,7 @@ namespace Ouroboros {
         public static List<SetCard> getSetsOfLanguage(string language, string articleCode) {
             List<SetCard> listOfSets = new List<SetCard>(); // List of sets for this language.
 
-            int startOfEnglishSets = articleCode.IndexOf(">" + language + "</span>", articleCode.IndexOf("TCG</a></i> sets")); // Find the beginning of the TCG Sets HTML Code for the selected language.
+            int startOfEnglishSets = articleCode.IndexOf(">" + language + "</div>", articleCode.IndexOf("TCG</a></i> sets")); // Find the beginning of the TCG Sets HTML Code for the selected language.
             if (startOfEnglishSets == -1) { return listOfSets; } // No sets for this language, so return nothing basically.
             int endOfEnglishSets = articleCode.IndexOf("</table>", startOfEnglishSets); // Find the end of the code for this language
             
@@ -199,10 +214,10 @@ namespace Ouroboros {
                 for (int i = 0; i < (dataParts.Count() / 4); i++) { // Now for each 4-tuple of data-parts...
                     // [NOT USED, setID, setName, setRarity]
                     SetCard s = new SetCard();
-                    s.cardSetName = dataParts[4 * i + 2]; // Grab the set name from the 4-tuple.
-                    s.cardSetID = dataParts[(4 * i) + 1]; // Grab the set ID from the 4-tuple.
-                    s.cardSetLanguage = language.Replace("—", " - "); // Add the language selected
-                    s.cardSetRarity = (dataParts[(4 * i) + 3] == "" ? "Unknown" : dataParts[(4 * i) + 3]); // Grab the rarity from the 3-tuple.
+                    s.cardSetName = dataParts[4 * i + 2].Trim(); // Grab the set name from the 4-tuple.
+                    s.cardSetID = dataParts[(4 * i) + 1].Trim(); // Grab the set ID from the 4-tuple.
+                    s.cardSetLanguage = language.Replace("—", " - ").Trim(); // Add the language selected
+                    s.cardSetRarity = (dataParts[(4 * i) + 3] == "" ? "Unknown" : dataParts[(4 * i) + 3]).Trim(); // Grab the rarity from the 3-tuple.
 
                     listOfSets.Add(s); // Add this SetCard to the list
                 }
@@ -405,46 +420,47 @@ namespace Ouroboros {
             return prices;
         }
 
-        public static string getHumanReadableTime(DateTime dt) {
+        public static string getHumanReadableTime(DateTime dt) { // Small method to get a human readable string from a DateTime difference.
             TimeSpan ts = DateTime.Now.Subtract(dt);
 
-            if (ts.TotalDays > 31) {
+            if (ts.TotalDays > 31) { // If more than 31 days old, change to weeks ago.
                 return string.Format("{0} weeks ago", Math.Ceiling((double)ts.TotalDays / 7));
             }
-            else if (ts.TotalDays > 3) {
+            else if (ts.TotalDays > 3) { // If more than 72 hours old, change to days ago.
                 return string.Format("{0} days ago", (int)ts.TotalDays);
             }
-            else if (ts.TotalHours > 2) { 
+            else if (ts.TotalHours > 2) { // If more than 120 minutes old, change to hours ago.
                  return string.Format("{0} hours ago", (int)ts.TotalHours);
             }
-            else if (ts.TotalSeconds > 60) {
+            else if (ts.TotalSeconds > 60) { // If more than 60 seconds old, change to minutes ago.
                 return string.Format("{0} minutes ago", (int)ts.TotalMinutes);
             }
-            else {
+            else { // Otherwise, it's seconds ago.
                 return string.Format("{0} seconds ago", (int)ts.TotalSeconds);
             }
         }
         # endregion
 
         # region Public Database IO Methods
-
         public static int importOwnedCards(CardDB oldDB, CardDB newDB) {
             int owned = 0; // Number of owned cards imported.
             int total = 0; // Total number of owned cards.
-            List<SetCard> oldOwned = new List<SetCard>();
+
+            Dictionary<SetCard, string> oldOwned = new Dictionary<SetCard, string>();
+
             using (StreamWriter sw = new StreamWriter("DBUpdate.log")) {
                 sw.WriteLine("Card Database Update Log: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                 
                 // Successful imports in the log
                 sw.WriteLine("============== Successful Imports ===============");
                 foreach (Card o in oldDB.listOfCards) { // For each card in the old database.
-                    Card n = newDB.listOfCards.Find(p => p.cardName == o.cardName); // We find the card in the new database (by checking for identical names).
+                    Card n = newDB.listOfCards.Find(p => p.cardName.Equals(o.cardName, StringComparison.InvariantCultureIgnoreCase)); // We find the card in the new database (by checking for identical names).
 
                     foreach (SetCard so in o.listOfSets) { // For each SetCard in the old card's list of sets...
                         SetCard sn = n.listOfSets.Find(s => (s.cardSetID == so.cardSetID && s.cardSetRarity == so.cardSetRarity)); // We find the matching SetCard in the new card's list of set...
                     
                         if (so.cardOwned) { // Add it to oldOwned, it will be removed if imported successfully.
-                            oldOwned.Add(so); 
+                            oldOwned.Add(so, o.cardName); 
                             total++;
                         } 
 
@@ -452,7 +468,7 @@ namespace Ouroboros {
                             sn.cardOwned = so.cardOwned; // And we copy across the cardOwned state from the old DB to the new DB.
                             if (so.cardOwned) {
                                 owned++; // Add 1 to imported.
-                                sw.Write("-> Successfully imported " + so.cardSetID + " (" + so.cardSetRarity + ").");
+                                sw.WriteLine("-> Successfully imported " + n.cardName + " (" + so.cardSetID + "  " + so.cardSetRarity + ")");
                                 oldOwned.Remove(so); 
                             } 
                         }
@@ -461,8 +477,8 @@ namespace Ouroboros {
 
                 // Log showing ones which failed to transfer...
                 sw.WriteLine("============== Failed to Import ===============");
-                foreach (SetCard failedToImport in oldOwned) {
-                    sw.Write("-> Failed to import: " + failedToImport.cardSetID + " (" + failedToImport.cardSetRarity + ").");
+                foreach (SetCard failedToImport in oldOwned.Keys) {
+                    sw.WriteLine("-> Failed to import: '" + oldOwned[failedToImport] + "' with set ID: " + failedToImport.cardSetID + " (" + failedToImport.cardSetRarity + ")");
                 }
 
                 // Import Statistics in Log
@@ -488,7 +504,7 @@ namespace Ouroboros {
             }
         }
 
-        public static void savePriceCache(PriceCache pc) {
+        public static void savePriceCache(PriceCache pc) { // Small method to save the price cache to file.
             string xml = Utilities.ToXML<PriceCache>(pc);
              try {
                 using (StreamWriter sw = new StreamWriter("PriceCache.xml")) {
@@ -504,7 +520,7 @@ namespace Ouroboros {
             }
         }
 
-        public static PriceCache loadPriceCache() { 
+        public static PriceCache loadPriceCache() { // Loads the price cache from file
             if (File.Exists("PriceCache.xml")) { // If it exists, load the file using the deserializer.
                 string xml = "";
                 using (StreamReader indexer = new StreamReader("PriceCache.xml")) {
@@ -537,7 +553,9 @@ namespace Ouroboros {
         }
 
         public static CardDB loadDB(string dbName, DatabaseUpdater parent) { // Loads the DB from the file.
-            parent.addMessageToLog("Loading the database file: CardDB_" + dbName + ".xml");
+            if (parent != null) {
+                parent.addMessageToLog("Loading the database file: CardDB_" + dbName + ".xml");
+            }
 
             if (File.Exists("CardDB_" + dbName + ".xml")) { // If it exists, load the file using the deserializer.
                 string xmlDB = "";
@@ -545,11 +563,15 @@ namespace Ouroboros {
                     xmlDB = indexer.ReadToEnd();
                 }
                 CardDB db = Utilities.FromXML<CardDB>(xmlDB);
-                parent.addMessageToLog("Successfully loaded card database, there are " + db.listOfCards.Count().ToString("n0") + " cards currently stored.");
+                if (parent != null) {
+                    parent.addMessageToLog("Successfully loaded card database, there are " + db.listOfCards.Count().ToString("n0") + " cards currently stored.");
+                }
                 return db;
             }
             else { // Otherwise create a new DB.
-                parent.addMessageToLog("There is no card database with that name, creating a new one...");
+                if (parent != null) { 
+                    parent.addMessageToLog("There is no card database with that name, creating a new one...");
+                }
                 CardDB db = new CardDB();
                 db.databaseName = dbName;
                 return db;

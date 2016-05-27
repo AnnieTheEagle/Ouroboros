@@ -1,18 +1,15 @@
 ﻿# region Using Statements
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-# endregion
+#endregion
 
 namespace Ouroboros {
     public partial class DatabaseUpdater : Form {
@@ -23,6 +20,8 @@ namespace Ouroboros {
         private int runningUpdateThreads = 0;
         private bool savingDB = false;
         private bool errorOccured = false;
+
+        Microsoft.WindowsAPICodePack.Taskbar.TaskbarManager taskbarManager = Microsoft.WindowsAPICodePack.Taskbar.TaskbarManager.Instance;
 
         [DllImport("gdi32.dll")]
         private static extern IntPtr AddFontMemResourceEx(IntPtr pbFont, uint cbFont, IntPtr pdv, [In] ref uint pcFonts);
@@ -87,9 +86,9 @@ namespace Ouroboros {
 
         private void checkForDatabaseUpdate() {
             addMessageToLog("Checking age of your database file...");
-            double numberOfDays = Double.PositiveInfinity;
+            double numberOfDays = double.PositiveInfinity;
             if (DataStorage.database.updateTimeString != "") {
-                numberOfDays = ((TimeSpan)(DateTime.Now - DateTime.Parse(DataStorage.database.updateTimeString))).TotalDays;
+                numberOfDays = ((DateTime.Now - DateTime.Parse(DataStorage.database.updateTimeString))).TotalDays;
             }
             if (numberOfDays > 45 && DataStorage.database.listOfCards.Count() > 0) { // If the database is older than 45 days... proceed with an update.
                 DialogResult result = DialogResult.Ignore;
@@ -101,7 +100,7 @@ namespace Ouroboros {
 
                 }));
 
-                if (result == System.Windows.Forms.DialogResult.Yes) { // If user accepts update, begin it, otherwise just load the CardBrowser (at the bottom of this method).
+                if (result == DialogResult.Yes) { // If user accepts update, begin it, otherwise just load the CardBrowser (at the bottom of this method).
                     updateDatabase();
                 }
             }
@@ -177,6 +176,9 @@ namespace Ouroboros {
             List<string> cardsToGrab = listOfCards.Except(newDB.getListOfUniqueCardNames()).ToList<string>();
             if (resuming) { addMessageToLog("There are still " + cardsToGrab.Count() + " cards to retrieve."); } // Only display this if resuming.
 
+            taskbarManager.SetProgressState(Microsoft.WindowsAPICodePack.Taskbar.TaskbarProgressBarState.Normal);
+            taskbarManager.SetProgressValue(0, cardsToGrab.Count());
+
             updateProgressBar(updateProgress, 0, listOfCards.Count()); // Set the maximum of the updateProgress to the number of cards left to grab.
 
             for (int i = 0; i < cardsToGrab.Count(); i++) { // For each card still left to grab... 
@@ -227,6 +229,7 @@ namespace Ouroboros {
             int numberImported = Utilities.importOwnedCards(DataStorage.database, newDB); // Import previously owned cards into new DB.
             addMessageToLog("Successfully imported " + numberImported.ToString("n0") + " owned cards.");
 
+            if (File.Exists("CardDB_v2_backup.xml")) { File.Delete("CardDB_v2_backup.xml"); }
             if (File.Exists("CardDB_v2.xml")) { File.Move("CardDB_v2.xml", "CardDB_v2_backup.xml"); }
 
             newDB.updateTimeString = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"); // Mark the time that the update is complete, next update is recommended 45 days from this time.
@@ -234,7 +237,10 @@ namespace Ouroboros {
             Utilities.saveDB(newDB);
             DataStorage.database = newDB;
 
+            taskbarManager.SetProgressState(Microsoft.WindowsAPICodePack.Taskbar.TaskbarProgressBarState.NoProgress);
+
             updateLabel(statusLabel, "Database was updated! :)", null);
+            if (File.Exists("CardDB_v2_clean.xml")) { File.Delete("CardDB_v2_clean.xml"); }
             if (File.Exists("CardDB_v2_update.xml")) { File.Move("CardDB_v2_update.xml", "CardDB_v2_clean.xml"); } // Keep a clean file
         }
 
@@ -251,7 +257,9 @@ namespace Ouroboros {
             string percentageString = " (" + (100.00f * (newDB.listOfCards.Count() * 1.00f / updateProgress.Maximum * 1.00f)).ToString("n3") + "%)";
             addMessageToLog("Successfully grabbed data for card " + newDB.listOfCards.Count().ToString("n0") + " of " + updateProgress.Maximum.ToString("n0") + percentageString + ".");
             updateProgressBar(updateProgress, newDB.listOfCards.Count(), null); // Update the progress bar.
-            
+
+            taskbarManager.SetProgressValue(newDB.listOfCards.Count(), updateProgress.Maximum);
+
             if (newDB.listOfCards.Count() % 50 == 0) { // Save progression on update database every 50 items.
                 if (!savingDB) { 
                     savingDB = true; // Mark DB as being saved, prevents multithreading errors.
